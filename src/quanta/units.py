@@ -21,40 +21,40 @@ class Dimension(Enum):
 
     def __mul__(self, other):
         if isinstance(other, Dimension):
-            return DimensionComposite({self: 1, other: 1})
+            return CompositeDimension({self: 1, other: 1})
         return NotImplemented
 
     def __truediv__(self, other):
         if isinstance(other, Dimension):
-            return DimensionComposite({self: 1, other: -1})
+            return CompositeDimension({self: 1, other: -1})
         return NotImplemented
 
     def __pow__(self, power):
-        return DimensionComposite({self: power})
+        return CompositeDimension({self: power})
 
 @dataclass(frozen=True)
-class DimensionComposite:
+class CompositeDimension:
     """Composite of fundamental dimensions with exponents"""
     dimensions: Dict[Dimension, float]
 
     def __mul__(self, other):
-        if isinstance(other, DimensionComposite):
+        if isinstance(other, CompositeDimension):
             new_dims = dict(self.dimensions)
             for dim, exp in other.dimensions.items():
                 new_dims[dim] = new_dims.get(dim, 0) + exp
-            return DimensionComposite({k: v for k, v in new_dims.items() if v != 0})
+            return CompositeDimension({k: v for k, v in new_dims.items() if v != 0})
         return NotImplemented
 
     def __truediv__(self, other):
-        if isinstance(other, DimensionComposite):
+        if isinstance(other, CompositeDimension):
             new_dims = dict(self.dimensions)
             for dim, exp in other.dimensions.items():
                 new_dims[dim] = new_dims.get(dim, 0) - exp
-            return DimensionComposite({k: v for k, v in new_dims.items() if v != 0})
+            return CompositeDimension({k: v for k, v in new_dims.items() if v != 0})
         return NotImplemented
 
     def __pow__(self, power):
-        return DimensionComposite({dim: exp * power for dim, exp in self.dimensions.items()})
+        return CompositeDimension({dim: exp * power for dim, exp in self.dimensions.items()})
 
     def __str__(self):
         parts = []
@@ -74,12 +74,12 @@ class Unit:
         name: Name of the unit (e.g., "meter")
         symbol: Symbol (e.g., "m")
         scale: Multiplication factor to convert to base units
-        dimensions: DimensionComposite object
+        dimensions: CompositeDimension object
     """
     name: str
     symbol: str
     scale: float = 1.0
-    dimensions: DimensionComposite = DimensionComposite({})
+    dimensions: CompositeDimension = CompositeDimension({})
 
     def __mul__(self, other):
         if isinstance(other, Unit):
@@ -115,7 +115,7 @@ class Unit:
 
     def __rtruediv__(self, value):
         """Enable 1 / meter syntax"""
-        return Quantity(value, Unit("", "", 1.0, DimensionComposite({}))) / self
+        return Quantity(value, Unit("", "", 1.0, CompositeDimension({}))) / self
 
 @dataclass
 class Quantity:
@@ -182,15 +182,94 @@ class Quantity:
         return f"Quantity({self.value}, {self.unit.symbol})"
 
 # ============================================================================
-# BASE UNITS (SI)
+# BASE UNITS
 # ============================================================================
 
-# Fundamental units
-second = Unit("second", "s", dimensions=DimensionComposite({Dimension.TIME: 1}))
-meter = Unit("meter", "m", dimensions=DimensionComposite({Dimension.LENGTH: 1}))
-kilogram = Unit("kilogram", "kg", dimensions=DimensionComposite({Dimension.MASS: 1}))
-coulomb = Unit("coulomb", "C", dimensions=DimensionComposite({Dimension.CHARGE: 1}))
-kelvin = Unit("kelvin", "K", dimensions=DimensionComposite({Dimension.TEMPERATURE: 1}))
-mole = Unit("mole", "mol", dimensions=DimensionComposite({Dimension.AMOUNT: 1}))
-candela = Unit("candela", "cd", dimensions=DimensionComposite({Dimension.LUMINOUS_INTENSITY: 1}))
-radian = Unit("radian", "rad", dimensions=DimensionComposite({}))
+second = Unit("second", "s", dimensions=CompositeDimension({Dimension.TIME: 1}))
+meter = Unit("meter", "m", dimensions=CompositeDimension({Dimension.LENGTH: 1}))
+kilogram = Unit("kilogram", "kg", dimensions=CompositeDimension({Dimension.MASS: 1}))
+coulomb = Unit("coulomb", "C", dimensions=CompositeDimension({Dimension.CHARGE: 1}))
+kelvin = Unit("kelvin", "K", dimensions=CompositeDimension({Dimension.TEMPERATURE: 1}))
+mole = Unit("mole", "mol", dimensions=CompositeDimension({Dimension.AMOUNT: 1}))
+candela = Unit("candela", "cd", dimensions=CompositeDimension({Dimension.LUMINOUS_INTENSITY: 1}))
+radian = Unit("radian", "rad", dimensions=CompositeDimension({}))
+
+# ============================================================================
+# DERIVED UNITS
+# ============================================================================
+
+hertz = Unit(
+    "hertz",
+    "Hz", 
+    dimensions=CompositeDimension({Dimension.TIME: -1})
+)
+
+joule = Unit(
+    "joule",
+    "J",
+    dimensions=CompositeDimension({
+        Dimension.MASS: 1,
+        Dimension.LENGTH: 2,
+        Dimension.TIME: -2
+    })
+)
+
+newton = Unit(
+    "newton",
+    "N",
+    dimensions=CompositeDimension({
+        Dimension.MASS: 1,
+        Dimension.LENGTH: 1,
+        Dimension.TIME: -2
+    })
+)
+
+volt = Unit(
+    "volt",
+    "V",
+    dimensions=CompositeDimension({
+        Dimension.MASS: 1,
+        Dimension.LENGTH: 2,
+        Dimension.TIME: -3,
+        Dimension.CHARGE: -1
+    })
+)
+
+watt = Unit(
+    "watt",
+    "W",
+    dimensions=CompositeDimension({
+        Dimension.MASS: 1,
+        Dimension.LENGTH: 2,
+        Dimension.TIME: -3
+    })
+)
+
+bohr = Unit(
+    "bohr_radius",
+    "a₀",
+    5.29177210903e-11,
+    dimensions=CompositeDimension({Dimension.LENGTH: 1})
+)
+
+hartree = Unit(
+    "hartree",
+    "E_h",
+    4.3597447222071e-18,
+    dimensions=CompositeDimension({
+        Dimension.MASS: 1,
+        Dimension.LENGTH: 2,
+        Dimension.TIME: -2
+    })
+)
+
+electronvolt = Unit(
+    "electronvolt",
+    "eV",
+    1.602176634e-19,
+    dimensions=CompositeDimension({
+        Dimension.MASS: 1,
+        Dimension.LENGTH: 2,
+        Dimension.TIME: -2
+    })
+)
