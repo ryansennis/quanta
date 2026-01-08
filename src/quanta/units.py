@@ -34,7 +34,12 @@ class Dimension(Enum):
 
 @dataclass(frozen=True)
 class CompositeDimension:
-    """Composite of fundamental dimensions with exponents"""
+    """
+    Composite of fundamental dimensions with exponents
+
+    Attributes:
+        dimensions (Dict[Dimension, float]): The composed dimensions with respective powers
+    """
     dimensions: Dict[Dimension, float]
 
     def __mul__(self, other):
@@ -71,10 +76,10 @@ class Unit:
     A physical unit with scaling and dimensions
     
     Attributes:
-        name: Name of the unit (e.g., "meter")
-        symbol: Symbol (e.g., "m")
-        scale: Multiplication factor to convert to base units
-        dimensions: CompositeDimension object
+        name (str): Name of the unit (e.g., "meter")
+        symbol (str): Symbol (e.g., "m")
+        scale (float): Multiplication factor to convert to base units. Default 1.0
+        dimensions (CompositeDimension): CompositeDimension object
     """
     name: str
     symbol: str
@@ -123,8 +128,8 @@ class Quantity:
     A physical quantity with value and unit
     
     Attributes:
-        value: Numerical value
-        unit: Unit object
+        value (float): Numerical value
+        unit (Unit): Unit object
     """
     value: float
     unit: Unit
@@ -204,72 +209,54 @@ hertz = Unit(
     dimensions=CompositeDimension({Dimension.TIME: -1})
 )
 
-joule = Unit(
-    "joule",
-    "J",
-    dimensions=CompositeDimension({
-        Dimension.MASS: 1,
-        Dimension.LENGTH: 2,
-        Dimension.TIME: -2
-    })
-)
-
 newton = Unit(
     "newton",
     "N",
-    dimensions=CompositeDimension({
-        Dimension.MASS: 1,
-        Dimension.LENGTH: 1,
-        Dimension.TIME: -2
-    })
+    dimensions=(kilogram * meter**2 / second**2).dimensions
+)
+
+joule = Unit(
+    "joule",
+    "J",
+    dimensions=(newton * meter).dimensions
 )
 
 volt = Unit(
     "volt",
     "V",
-    dimensions=CompositeDimension({
-        Dimension.MASS: 1,
-        Dimension.LENGTH: 2,
-        Dimension.TIME: -3,
-        Dimension.CHARGE: -1
-    })
+    dimensions=(joule / coulomb).dimensions
 )
 
 watt = Unit(
     "watt",
     "W",
-    dimensions=CompositeDimension({
-        Dimension.MASS: 1,
-        Dimension.LENGTH: 2,
-        Dimension.TIME: -3
-    })
+    dimensions=(joule / second).dimensions
 )
 
 bohr = Unit(
-    "bohr_radius",
-    "a₀",
+    "bohr radius",
+    "a_o",
     5.29177210903e-11,
-    dimensions=CompositeDimension({Dimension.LENGTH: 1})
+    dimensions=meter.dimensions
 )
 
 hartree = Unit(
     "hartree",
     "E_h",
     4.3597447222071e-18,
-    dimensions=CompositeDimension({
-        Dimension.MASS: 1,
-        Dimension.LENGTH: 2,
-        Dimension.TIME: -2
-    })
+    dimensions=joule.dimensions
 )
 
-electronvolt = Unit(
-    "electronvolt",
+electron_volt = Unit(
+    "electron volt",
     "eV",
     1.602176634e-19,
-    dimensions=CompositeDimension({
-        Dimension.MASS: 1,
-        Dimension.LENGTH: 2,
-        Dimension.TIME: -2
-    })
+    dimensions=joule.dimensions
+)
+
+h_bar = Unit(
+    "planck's constant",
+    "h_bar",
+    6.62607015e-34,
+    dimensions=(joule*second).dimensions
 )
