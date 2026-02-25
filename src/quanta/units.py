@@ -4,9 +4,7 @@ Docstring for quanta.constants
 
 from enum import Enum
 from dataclasses import dataclass
-from typing import Dict, Optional
-from functools import lru_cache
-import numpy as np
+from typing import Dict
 
 class Dimension(Enum):
     """Fundamental physical dimensions"""
